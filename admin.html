@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraMed+ | Pharmacy Dispensary & Business Admin Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+    .admin-sidebar {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+    .admin-profile-box {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .admin-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+    .admin-nav-item:hover, .admin-nav-item.active {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+    .admin-main {
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      background: var(--bg-body);
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .kpi-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .table-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    .admin-table th {
+      background: var(--bg-subtle);
+      padding: 0.85rem 1.25rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-table td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    .admin-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-full);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-confirmed { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+    .status-verified { background: rgba(13, 148, 136, 0.1); color: #0d9488; }
+    .status-packing { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+    .status-out_for_delivery { background: rgba(147, 51, 234, 0.1); color: #9333ea; }
+    .status-delivered { background: rgba(16, 185, 129, 0.1); color: #059669; }
+    .status-pending_review { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+    .status-approved { background: rgba(16, 185, 129, 0.1); color: #059669; }
+
+    /* Login Screen Overlay */
+    .login-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-body);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 1.5rem;
+    }
+    .login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-xl);
+      text-align: center;
+    }
+    .login-card .logo-icon {
+      margin: 0 auto 1.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin Login Gate -->
+  <div id="adminLoginGate" class="login-overlay">
+    <div class="login-card">
+      <div class="logo-icon" style="width: 50px; height: 50px; font-size: 1.5rem;">
+        💊
+      </div>
+      <h2 style="font-size: 1.6rem; margin-bottom: 0.35rem;">Dispensary Portal Login</h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.75rem;">
+        Enter master credentials to access orders, prescription vault, and inventory controls.
+      </p>
+
+      <form id="adminLoginForm">
+        <div class="form-group" style="text-align: left;">
+          <label for="loginEmail">Admin Email</label>
+          <input type="email" id="loginEmail" class="form-control" value="admin@auramed.com" required>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label for="loginPassword">Master Password</label>
+          <input type="password" id="loginPassword" class="form-control" value="admin123" required>
+        </div>
+
+        <button type="submit" id="btnAdminLoginSubmit" class="btn-primary" style="width: 100%; padding: 0.85rem; font-size: 0.95rem; margin-top: 0.5rem;">
+          🔓 Sign In to Admin Console
+        </button>
+      </form>
+
+      <div style="margin-top: 1.5rem; padding: 0.85rem; background: var(--bg-subtle); border-radius: var(--radius-md); font-size: 0.78rem; color: var(--text-muted); text-align: left;">
+        <strong>🔑 Default Master Access:</strong><br>
+        Email: <code style="color: var(--primary);">admin@auramed.com</code><br>
+        Password: <code style="color: var(--primary);">admin123</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Application Layout -->
+  <div class="admin-layout" id="adminAppLayout" style="display: none;">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">AuraMed+</span>
+          <span class="brand-subtitle">Business Admin</span>
+        </div>
+      </a>
+
+      <!-- Profile Card -->
+      <div class="admin-profile-box">
+        <div class="admin-avatar">👨‍⚕️</div>
+        <div style="flex: 1; overflow: hidden;">
+          <div id="adminProfileName" style="font-weight: 700; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">Dr. Alex Vance</div>
+          <div id="adminProfileRole" style="font-size: 0.72rem; color: var(--text-muted);">Super Admin</div>
+        </div>
+        <button id="adminLogoutBtn" title="Logout" style="color: var(--rx-red); font-size: 1rem; cursor: pointer; padding: 0.2rem;">
+          🚪
+        </button>
+      </div>
+
+      <nav style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+        <div class="admin-nav-item active" data-tab="tabOverview">
+          <span>📊</span> Overview & Metrics
+        </div>
+        <div class="admin-nav-item" data-tab="tabOrders">
+          <span>📦</span> Customer Orders
+        </div>
+        <div class="admin-nav-item" data-tab="tabPrescriptions">
+          <span>📄</span> Rx Verification Queue
+        </div>
+        <div class="admin-nav-item" data-tab="tabInventory">
+          <span>💊</span> Medicine Inventory
+        </div>
+        <div class="admin-nav-item" data-tab="tabSettings">
+          <span>⚙️</span> Store Settings & Security
+        </div>
+      </nav>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        <a href="index.html" class="btn-secondary" style="font-size: 0.85rem; padding: 0.6rem; text-align: center; display: block;">
+          ← View Customer Store
+        </a>
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center;">
+          Full Master Access • v2.0.0
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-main">
+      <!-- Top Title Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+          <h1 style="font-size: 1.85rem; margin-bottom: 0.25rem;">Dispensary Management Portal</h1>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Real-time orders, prescription verification, and medicine stock controls.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <button id="refreshAdminBtn" class="btn-secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem;">
+            🔄 Refresh Live Data
+          </button>
+          <button id="openAddMedModalBtn" class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1.25rem;">
+            + Add New Medicine
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metrics Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Shop Revenue</span>
+          <span id="kpiRevenue" class="kpi-value">$0.00</span>
+          <span style="font-size: 0.75rem; color: var(--accent-emerald);">● Real-time calculated</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Total Orders</span>
+          <span id="kpiOrders" class="kpi-value">0</span>
+          <span style="font-size: 0.75rem; color: var(--primary);">● Customer dispatches</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Pending Prescriptions</span>
+          <span id="kpiRx" class="kpi-value" style="color: var(--rx-red);">0</span>
+          <span style="font-size: 0.75rem; color: var(--rx-red);">● Awaiting pharmacist check</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Active Medicines in Stock</span>
+          <span id="kpiStock" class="kpi-value">0</span>
+          <span style="font-size: 0.75rem; color: var(--accent-emerald);">● Inventory active</span>
+        </div>
+      </div>
+
+      <!-- Tab: Orders Management -->
+      <div class="admin-tab-content" id="tabOrders">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>Recent Customer Orders</h3>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Change status to update customer live tracking</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer & Address</th>
+                <th>Items Ordered</th>
+                <th>Total</th>
+                <th>Fulfillment Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminOrdersTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Prescription Verification Queue -->
+      <div class="admin-tab-content" id="tabPrescriptions">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>Prescription Verification Queue</h3>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Pharmacist verification dashboard</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Rx ID</th>
+                <th>Patient Details</th>
+                <th>Prescription File</th>
+                <th>Notes / Allergies</th>
+                <th>Status</th>
+                <th>Pharmacist Decision</th>
+              </tr>
+            </thead>
+            <tbody id="adminRxTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Medicine Inventory -->
+      <div class="admin-tab-content" id="tabInventory">
+        <div class="table-container">
+          <div class="table-header">
+            <h3>Dispensary Stock & Catalog</h3>
+            <span style="font-size: 0.82rem; color: var(--text-muted);">Manage prices, stock limits, and active status</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Medicine</th>
+                <th>Category</th>
+                <th>Unit Price</th>
+                <th>Stock Quantity</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminInventoryTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Store Settings & Security -->
+      <div class="admin-tab-content" id="tabSettings" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <!-- Store Config -->
+          <div class="table-container" style="padding: 1.5rem;">
+            <h3 style="margin-bottom: 1.25rem;">Dispensary Configuration</h3>
+            <form id="storeSettingsForm">
+              <div class="form-group">
+                <label>Store Business Name</label>
+                <input type="text" id="settingStoreName" class="form-control" value="AuraMed+ Digital Pharmacy & Healthcare">
+              </div>
+              <div class="form-group">
+                <label>Emergency Support Phone</label>
+                <input type="text" id="settingStorePhone" class="form-control" value="(800) 555-AURA">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label>Currency Symbol</label>
+                  <input type="text" id="settingCurrency" class="form-control" value="$">
+                </div>
+                <div class="form-group">
+                  <label>Free Delivery Threshold ($)</label>
+                  <input type="number" id="settingFreeDelivery" class="form-control" value="35.00">
+                </div>
+              </div>
+              <button type="submit" class="btn-primary" style="margin-top: 0.5rem;">Save Store Settings</button>
+            </form>
+          </div>
+
+          <!-- Password Change -->
+          <div class="table-container" style="padding: 1.5rem;">
+            <h3 style="margin-bottom: 1.25rem;">Change Master Password</h3>
+            <form id="changePasswordForm">
+              <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" id="oldPassword" class="form-control" required placeholder="Current password">
+              </div>
+              <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="newPassword" class="form-control" required placeholder="New password">
+              </div>
+              <button type="submit" class="btn-secondary" style="margin-top: 0.5rem;">Update Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Medicine Modal -->
+  <div id="addMedModal" class="modal-backdrop">
+    <div class="modal-dialog">
+      <button id="closeAddMedModalBtn" class="modal-close-btn">✕</button>
+      <h2 style="margin-bottom: 1rem;">Add Medicine to Inventory</h2>
+      <form id="addMedForm">
+        <div class="form-group">
+          <label>Medicine Name *</label>
+          <input type="text" id="newMedName" class="form-control" required placeholder="e.g. Azithromycin 500mg">
+        </div>
+        <div class="form-group">
+          <label>Generic Salt Name *</label>
+          <input type="text" id="newMedGeneric" class="form-control" required placeholder="e.g. Azithromycin Dihydrate">
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="newMedCategory" class="form-control" required>
+            <option value="pain-relief">Pain Relief & Fever</option>
+            <option value="antibiotics">Antibiotics (Rx)</option>
+            <option value="chronic-care">Chronic Care (Cardiac / Diabetes)</option>
+            <option value="vitamins">Vitamins & Supplements</option>
+            <option value="devices">Medical Devices</option>
+            <option value="skincare">Dermatology</option>
+            <option value="baby">Mother & Baby</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>Price ($) *</label>
+            <input type="number" step="0.01" id="newMedPrice" class="form-control" required placeholder="e.g. 9.50">
+          </div>
+          <div class="form-group">
+            <label>Stock Quantity *</label>
+            <input type="number" id="newMedStock" class="form-control" required value="100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="newMedRx"> Requires Doctor's Prescription (Rx)
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Dosage & Pack Size</label>
+          <input type="text" id="newMedDosage" class="form-control" placeholder="e.g. 500mg - 10 Tablets">
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">
+          Save Medicine to Database
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
